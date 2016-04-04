@@ -7,16 +7,14 @@ CONF_DIR='vcs'
 # 0 => SSH_USER
 # 1 => SSH_HOST
 # 2 => SSH_PORT
-# 3 => SCP_ROOT
-# 4 => PHP_BIN
-# 5 => PHP_DRUSH
-# declare -a prod=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'PHP_DRUSH')
-# declare -a dev=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'PHP_DRUSH')
+# 3 => SCP_ROOT (Absolute: e.g.: /home/usr/envs/prod)
+# 4 => DRUPAL_FOLDER (e.g.: web, Site)
+# 5 => PHP_BIN
+# 6 => PHP_DRUSH
+# declare -a prod=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_DRUSH')
+# declare -a dev=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_DRUSH')
 declare -a ENV
-# SSH_USER='opensource'
-# SSH_HOST='174.142.46.215'
-# SSH_PORT='22'
-# SITE_ROOT='/home/opensource/apps/afsec'
+
 HELP=0
 RSYNC=1
 SSH_ONLY=0
@@ -135,7 +133,8 @@ read -p "> Do you want to rebuild cache?[y:N]" CONT
 
 case $CONT in
   Y*|y*)
-    ssh -p ${ENV[2]} "${ENV[0]}@${ENV[1]}" "cd ${ENV[3]}/Site; echo Drupal Directory: "'`pwd`'"; ${ENV[@]:4:5} cr"
+    echo "Rebuilding cache at $REMOTE_PATH:"
+    ssh -p ${ENV[2]} "${ENV[0]}@${ENV[1]}" "cd $REMOTE_PATH/${ENV[4]}; ${ENV[@]:5} cr"
     ;;
   *)
   ;;
@@ -156,5 +155,5 @@ case $CONT in
 esac
 echo "Using Configuration Command: $CONF_COMMAND"
 
-ssh -p ${ENV[2]} "${ENV[0]}@${ENV[1]}" "cd ${ENV[3]}/Site; echo Drupal Directory: "'`pwd`'"; ${ENV[@]:4:5} $CONF_COMMAND $CONF_DIR"
+ssh -p ${ENV[2]} "${ENV[0]}@${ENV[1]}" "cd $REMOTE_PATH/${ENV[4]}; ${ENV[@]:5} $CONF_COMMAND $CONF_DIR"
 
