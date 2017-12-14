@@ -1,5 +1,3 @@
-vendor
-
 sites/*/settings*.php
 sites/*/services*.yml
 
@@ -24,6 +22,7 @@ php_mail*log
 php_error*log
 nbproject
 cgi-bin/
+.well-known
 
 google*.html
 

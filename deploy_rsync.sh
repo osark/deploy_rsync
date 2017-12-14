@@ -9,10 +9,10 @@ CONF_DIR='vcs'
 # 2 => SSH_PORT
 # 3 => SCP_ROOT (Absolute: e.g.: /home/usr/envs/prod)
 # 4 => DRUPAL_FOLDER (e.g.: web, Site)
-# 5 => PHP_BIN
+# 5 => PHP_BIN (e.g.: /usr/local/bin/php -d memery_limit=512M)
 # 6 => PHP_DRUSH
-# declare -a prod=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_DRUSH')
-# declare -a dev=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_DRUSH')
+# declare -a prod=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_BIN' 'PHP_DRUSH')
+# declare -a dev=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_BIN' 'PHP_DRUSH')
 declare -a ENV
 
 HELP=0
@@ -93,7 +93,7 @@ REMOTE_PATH=${ENV[3]}
 
 if [ $SSH_ONLY -gt 0 ]
 then
-  ssh -p ${ENV[2]} ${ENV[0]}@${ENV[1]}
+  ssh -o PubkeyAuthentication=yes -p ${ENV[2]} -t ${ENV[0]}@${ENV[1]} "cd ${REMOTE_PATH}/${ENV[4]} && exec bash -l "
   exit 0
 fi
 
