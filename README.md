@@ -29,3 +29,8 @@ The script uses `rsync.ignore` file to be ignored during uploading and downloadi
 
 Use help flags `-h` or `--help` to display the internal script help for details of different paramters and flags used by the script.
 
+# Drush Alias Actions
+
+If you deploy your Drupal code using git, for example on Acquia, you need to run regular Drush actions post deployment, like updating the database, importing configuration and clear the cache.
+
+Use `./daa.sh` to do these actions dynamically using available Drush aliases dynamically. This is extremelly useful for Drupal multisite setup on the same enviornment, so you can create a `dev`, `stage` and `prod` site aliases, each alias site can have entries for the different subsites available on that environment, and the script will loap over each entry in the Drush alias site and perform the 3 actions in sequence.
