@@ -192,7 +192,6 @@ else
   echo "Using (${ENVIRONMENT}) $REMOTE_PATH:"
 fi
 
-read -p "> Do you want to rebuild cache?[y:N]" CONT
 if [ $OVERRIDE == 0 ]
 then
   read  -p "> Do you want to rebuild cache?[y:N]" CONT
@@ -211,7 +210,7 @@ case $CONT in
   ;;
 esac
 
-if [ DRUSH_CONFIG_MANAGEMENT == 0 ]
+if [ $DRUSH_CONFIG_MANAGEMENT == 0 ]
 then
   echo "Drush configuration management is disabled."
   echo "Bye Bye."
