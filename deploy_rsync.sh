@@ -3,22 +3,30 @@
 ENVIRONMENT='dev'
 IGNORE_FILE='./rsync.ignore'
 CONF_DIR='vcs'
+
 # Environment Arrays
 # 0 => SSH_USER
 # 1 => SSH_HOST
 # 2 => SSH_PORT
 # 3 => SCP_ROOT (Absolute: e.g.: /home/usr/envs/prod)
-# 4 => DRUPAL_FOLDER (e.g.: web, Site)
+# 4 => WEB_ROOT (e.g.: web, Site)
 # 5 => PHP_BIN (e.g.: /usr/local/bin/php -d memery_limit=512M)
 # 6 => PHP_DRUSH
-# declare -a prod=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_BIN' 'PHP_DRUSH')
-# declare -a dev=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'DRUPAL_FOLDER' 'PHP_BIN' 'PHP_DRUSH')
+# declare -a prod=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'WEB_ROOT' 'PHP_BIN' 'PHP_DRUSH')
+# declare -a dev=('SSH_USER' 'SSH_HOST' 'SSH_PORT' 'SCP_ROOT' 'WEB_ROOT' 'PHP_BIN' 'PHP_DRUSH')
 declare -a ENV
+
+# Environment defaults
+SSH_PORT=22
+WEB_ROOT='.'
+PHP_BIN='/usr/bin/php'
 
 HELP=0
 RSYNC=1
 SSH_ONLY=0
 DOWNLOAD=0
+OVERRIDE=0
+DRUSH_CONFIG_MANAGEMENT=1
 
 while [[ $# > 0 ]]
 do
@@ -30,10 +38,9 @@ case $key in
 	ENVIRONMENT="$2"
 	shift
   ;;
-  -i|--ignore-file)
+   -i|--ignore-file)
     IGNORE_FILE="$2"
-    shift
-  ;;
+    shift;;
   -h|--help)
 	HELP=1
   ;;
@@ -46,12 +53,49 @@ case $key in
   -D|--download)
     DOWNLOAD=1
   ;;
+  -y)
+    OVERRIDE=1
+  ;;
+  --no-dcm)
+    DRUSH_CONFIG_MANAGEMENT=0
+  ;;
+  --SSH_USER)
+    SSH_USER="$2"
+    shift
+  ;;
+  --SSH_HOST)
+    SSH_HOST="$2"
+    shift
+  ;;
+  --SSH_PORT)
+    SSH_PORT="$2"
+    shift
+  ;;
+  --SCP_ROOT)
+    SCP_ROOT="$2"
+    shift
+  ;;
+  --WEB_ROOT)
+    WEB_ROOT="$2"
+    shift
+  ;;
+  --PHP_BIN)
+    PHP_BIN="$2"
+    shift
+  ;;
+  --PHP_DRUSH)
+    PHP_DRUSH="$2"
+    shitf
+  ;;
 esac
 shift
 done
 
 
 case $ENVIRONMENT in
+        inline|i)
+    ENV=(${SSH_USER} ${SSH_HOST} ${SSH_PORT} ${SCP_ROOT} ${WEB_ROOT} ${PHP_BIN} ${PHP_DRUSH})
+        ;;
 	prod|PROD|Prod)
     ENV=(${prod[@]}); # echo ${ENV[0]} @${ENV[1]}:${ENV[3]} -p ${ENV[2]}
 	  REMOTE_WD='prod'
@@ -61,9 +105,9 @@ case $ENVIRONMENT in
 	  REMOTE_WD='dev'
 	;;
 	*)
-	  HELP=1
-	  REMOTE_WD=$ENVIRONMENT
-    ;;
+	HELP=1
+        REMOTE_WD="$ENVIRONMENT"
+	;;
 esac
 
 if [ $HELP -gt 0 ]
@@ -80,8 +124,21 @@ Usage: Deploy all updates to server using rsync
 				directly
 	-D, --download  	Download files instead of uploading them. Dosn't work
 				if (-n|--no-rsync) option is selected
+	-y      		Override interactive question by answering YES.
+        --no-dcm		Disable Drush Configuration Management section.
 	--ssh			Connect SSH ONLY!
-  
+
+Environment Variables: Using \`(-e|--env) (i|inline)\`
+	--SSH_USER '<username>'
+	--SSH_HOST '<domain|IP>'
+	--SSH_PORT '<port (default=22)>'
+	--SCP_ROOT '</absolute/path/to/project>'
+		Absolute path that starts copying the project to. Without / at the end.
+	--WEB_ROOT '<root/dir>'
+		Relative path to SCP_ROOT without / at the start.
+	--PHP_BIN '</absolute/path/to/php (default='/usr/bin/php')>'
+	--PHP_DRUSH '</absolute/path/to/drush>'
+
 Available Environments:
 	dev|DEV			development environment
 	prod|PROD		production environment"
@@ -114,7 +171,13 @@ then
   
   CONT='n'
   
-  read  -p "> Do you want to continue?[y:N]" CONT
+  if [ $OVERRIDE == 0 ]
+  then
+  	read  -p "> Do you want to continue?[y:N]" CONT
+  else
+        echo "> Do you want to continue?[y:N] YES"
+	CONT="YES"
+  fi
   
   case $CONT in
   	Y*|y*)
@@ -130,6 +193,14 @@ else
 fi
 
 read -p "> Do you want to rebuild cache?[y:N]" CONT
+if [ $OVERRIDE == 0 ]
+then
+  read  -p "> Do you want to rebuild cache?[y:N]" CONT
+else
+  echo "> Do you want to rebuild cache?[y:N]YES"
+  CONT="YES"
+fi
+
 
 case $CONT in
   Y*|y*)
@@ -140,7 +211,20 @@ case $CONT in
   ;;
 esac
 
-read -p "> Do you want to import/export/IGNORE "'`'$CONF_DIR'`'" configuration?[i:e:N]" CONT
+if [ DRUSH_CONFIG_MANAGEMENT == 0 ]
+then
+  echo "Drush configuration management is disabled."
+  echo "Bye Bye."
+  exit 0
+fi
+
+if [ $OVERRIDE == 0 ]
+then
+  read -p "> Do you want to import/export/IGNORE "'`'$CONF_DIR'`'" configuration?[i:e:N]" CONT
+else
+  echo "> Do you want to import/export/IGNORE '$CONF_DIR' configuration?[i:e:N] IMPORT"
+  CONT="IMPORT"
+fi
 
 case $CONT in
   I*|i*)
