@@ -3,6 +3,7 @@
 ENVIRONMENT='dev'
 IGNORE_FILE='./rsync.ignore'
 CONF_DIR='vcs'
+SCP_SRC="."
 
 # Environment Arrays
 # 0 => SSH_USER
@@ -85,7 +86,11 @@ case $key in
   ;;
   --PHP_DRUSH)
     PHP_DRUSH="$2"
-    shitf
+    shift
+  ;;
+  --SCP_SRC)
+    SCP_SRC="$2"
+    shift
   ;;
 esac
 shift
@@ -138,6 +143,8 @@ Environment Variables: Using \`(-e|--env) (i|inline)\`
 		Relative path to SCP_ROOT without / at the start.
 	--PHP_BIN '</absolute/path/to/php (default='/usr/bin/php')>'
 	--PHP_DRUSH '</absolute/path/to/drush>'
+	--SCP_SRC '<relative/path>'
+		Relative path to the local directory to be deployed.
 
 Available Environments:
 	dev|DEV			development environment
@@ -160,10 +167,10 @@ then
   then
     ACTION='Downloading from'
     SRC="${ENV[0]}@${ENV[1]}:${ENV[3]}/"
-    DST=.
+    DST=$SCP_SRC
   else
     ACTION='Deploying to'
-    SRC=.
+    SRC=$SCP_SRC
     DST="${ENV[0]}@${ENV[1]}:${ENV[3]}"
   fi
   echo "> $ACTION $REMOTE_PATH (DRY-RUN)"
