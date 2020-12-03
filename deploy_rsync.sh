@@ -28,6 +28,7 @@ SSH_ONLY=0
 DOWNLOAD=0
 OVERRIDE=0
 DRUSH_CONFIG_MANAGEMENT=1
+DRUPAL_REBUILD_CACHE=1
 
 while [[ $# > 0 ]]
 do
@@ -59,6 +60,9 @@ case $key in
   ;;
   --no-dcm)
     DRUSH_CONFIG_MANAGEMENT=0
+  ;;
+  --no-cr)
+    $DRUPAL_REBUILD_CACHE=0
   ;;
   --SSH_USER)
     SSH_USER="$2"
@@ -131,6 +135,7 @@ Usage: Deploy all updates to server using rsync
 				if (-n|--no-rsync) option is selected
 	-y      		Override interactive question by answering YES.
         --no-dcm		Disable Drush Configuration Management section.
+        --no-cr 		Disable Drush Cache Rebuild section.
 	--ssh			Connect SSH ONLY!
 
 Environment Variables: Using \`(-e|--env) (i|inline)\`
@@ -199,23 +204,26 @@ else
   echo "Using (${ENVIRONMENT}) $REMOTE_PATH:"
 fi
 
-if [ $OVERRIDE == 0 ]
+if [ $DRUPAL_REBUILD_CACHE == 1]
 then
-  read  -p "> Do you want to rebuild cache?[y:N]" CONT
-else
-  echo "> Do you want to rebuild cache?[y:N]YES"
-  CONT="YES"
-fi
-
-
-case $CONT in
-  Y*|y*)
-    echo "Rebuilding cache at $REMOTE_PATH:"
-    ssh -p ${ENV[2]} "${ENV[0]}@${ENV[1]}" "cd $REMOTE_PATH/${ENV[4]}; ${ENV[@]:5} cr"
+  if [ $OVERRIDE == 0 ]
+  then
+    read  -p "> Do you want to rebuild cache?[y:N]" CONT
+  else
+    echo "> Do you want to rebuild cache?[y:N]YES"
+    CONT="YES"
+  fi
+  
+  
+  case $CONT in
+    Y*|y*)
+      echo "Rebuilding cache at $REMOTE_PATH:"
+      ssh -p ${ENV[2]} "${ENV[0]}@${ENV[1]}" "cd $REMOTE_PATH/${ENV[4]}; ${ENV[@]:5} cr"
+      ;;
+    *)
     ;;
-  *)
-  ;;
-esac
+  esac
+fi
 
 if [ $DRUSH_CONFIG_MANAGEMENT == 0 ]
 then
