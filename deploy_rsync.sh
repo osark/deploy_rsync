@@ -62,7 +62,7 @@ case $key in
     DRUSH_CONFIG_MANAGEMENT=0
   ;;
   --no-cr)
-    $DRUPAL_REBUILD_CACHE=0
+    DRUPAL_REBUILD_CACHE=0
   ;;
   --SSH_USER)
     SSH_USER="$2"
@@ -179,7 +179,7 @@ then
     DST="${ENV[0]}@${ENV[1]}:${ENV[3]}"
   fi
   echo "> $ACTION $REMOTE_PATH (DRY-RUN)"
-  rsync -avzi --del --no-perms -e "ssh -p ${ENV[2]}" $SRC $DST  --exclude-from="$IGNORE_FILE" --no-times --checksum --dry-run
+  rsync -avzi --del --no-perms -e "ssh -p ${ENV[2]}" $SRC $DST  --exclude-from="$IGNORE_FILE" --no-times --checksum --no-owner --no-group --dry-run
   
   CONT='n'
   
@@ -199,12 +199,12 @@ then
   	;;
   esac
   
-  rsync -avz --del --no-perms -e "ssh -p ${ENV[2]}" $SRC $DST --exclude-from="$IGNORE_FILE" --no-times --checksum
+  rsync -avz --del --no-perms -e "ssh -p ${ENV[2]}" $SRC $DST --exclude-from="$IGNORE_FILE" --no-times --checksum --no-owner --no-group
 else
   echo "Using (${ENVIRONMENT}) $REMOTE_PATH:"
 fi
 
-if [ $DRUPAL_REBUILD_CACHE == 1]
+if [ $DRUPAL_REBUILD_CACHE == 1 ]
 then
   if [ $OVERRIDE == 0 ]
   then
